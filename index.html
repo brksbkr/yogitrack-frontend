@@ -134,6 +134,11 @@
     </details>
 
     <details>
+      <summary>Sales</summary>
+      <div id="salesList" class="list"></div>
+    </details>
+
+    <details>
       <summary>Classes</summary>
       <div id="classesList" class="list"></div>
     </details>
@@ -260,6 +265,7 @@
       const customers = await fetch(`${API_URL}/customers`).then(r => r.json());
       const instructors = await fetch(`${API_URL}/instructors`).then(r => r.json());
       const packages = await fetch(`${API_URL}/packages`).then(r => r.json());
+      const sales = await fetch(`${API_URL}/sales`).then(r => r.json());
       const classes = await fetch(`${API_URL}/classes`).then(r => r.json());
 
       customersList.innerHTML = customers.map(c =>
@@ -271,11 +277,15 @@
       ).join("");
 
       packagesList.innerHTML = packages.map(p =>
-        `<div>${p.id} - ${p.name} (${p.classCount} classes)</div>`
+        `<div>${p.id} - ${p.name} (${p.classCount} classes) | Price: $${p.price}</div>`
+      ).join("");
+
+      salesList.innerHTML = sales.map(s =>
+        `<div>${s.id} - Customer: ${s.customerId} | Package: ${s.packageId} | Amount: $${s.amount} | Date: ${s.timestamp ? new Date(s.timestamp).toLocaleString() : "Not recorded"}</div>`
       ).join("");
 
       classesList.innerHTML = classes.map(c =>
-        `<div>${c.id} - ${c.title} | ${c.date} ${c.time}</div>`
+        `<div>${c.id} - ${c.title} | Instructor: ${c.instructorId} | ${c.date} ${c.time}</div>`
       ).join("");
     }
 
