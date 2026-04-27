@@ -275,18 +275,33 @@
           customerTotals[s.customerId] = {
             totalSpent: 0,
             packagesBought: 0
+            packages: []
           };
         }
 
         customerTotals[s.customerId].totalSpent += s.amount;
         customerTotals[s.customerId].packagesBought += 1;
+        customerTotals[s.customerId].packages.push(s.packageId);
       });
-
+      
       customersList.innerHTML = customers.map(c => {
-        const totals = customerTotals[c.id] || { totalSpent: 0, packagesBought: 0 };
-
-        return `<div>${c.id} - ${c.firstName} ${c.lastName} | Balance: ${c.classBalance} | Packages bought: ${totals.packagesBought} | Total spent: $${totals.totalSpent}</div>`;
-      }).join("");
+        const totals = customerTotals[c.id] || {
+            totalSpent: 0,
+            packagesBought: 0,
+            packages: []
+        };
+        
+        const packageList = totals.packages.length > 0
+        ? totals.packages.map(p => `P${p}`).join(", ")
+        : "None";
+        
+        return `<div>
+            ${c.id} - ${c.firstName} ${c.lastName} | 
+            Balance: ${c.classBalance} | 
+            Packages bought: ${totals.packagesBought} [${packageList}] | 
+            Total spent: $${totals.totalSpent}
+            </div>`;
+        }).join("");
 
       instructorsList.innerHTML = instructors.map(i =>
         `<div>${i.id} - ${i.firstName} ${i.lastName}</div>`
