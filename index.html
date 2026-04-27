@@ -268,9 +268,25 @@
       const sales = await fetch(`${API_URL}/sales`).then(r => r.json());
       const classes = await fetch(`${API_URL}/classes`).then(r => r.json());
 
-      customersList.innerHTML = customers.map(c =>
-        `<div>${c.id} - ${c.firstName} ${c.lastName} | Balance: ${c.classBalance}</div>`
-      ).join("");
+      const customerTotals = {};
+
+      sales.forEach(s => {
+        if (!customerTotals[s.customerId]) {
+          customerTotals[s.customerId] = {
+            totalSpent: 0,
+            packagesBought: 0
+          };
+        }
+
+        customerTotals[s.customerId].totalSpent += s.amount;
+        customerTotals[s.customerId].packagesBought += 1;
+      });
+
+      customersList.innerHTML = customers.map(c => {
+        const totals = customerTotals[c.id] || { totalSpent: 0, packagesBought: 0 };
+
+        return `<div>${c.id} - ${c.firstName} ${c.lastName} | Balance: ${c.classBalance} | Packages bought: ${totals.packagesBought} | Total spent: $${totals.totalSpent}</div>`;
+      }).join("");
 
       instructorsList.innerHTML = instructors.map(i =>
         `<div>${i.id} - ${i.firstName} ${i.lastName}</div>`
@@ -284,9 +300,12 @@
         `<div>${s.id} - Customer: ${s.customerId} | Package: ${s.packageId} | Amount: $${s.amount} | Date: ${s.timestamp ? new Date(s.timestamp).toLocaleString() : "Not recorded"}</div>`
       ).join("");
 
-      classesList.innerHTML = classes.map(c =>
-        `<div>${c.id} - ${c.title} | Instructor: ${c.instructorId} | ${c.date} ${c.time}</div>`
-      ).join("");
+      classesList.innerHTML = classes.map(c => {
+        const instructor = instructors.find(i => i.id === c.instructorId);
+        const instructorName = instructor ? `${instructor.firstName} ${instructor.lastName}` : "Unknown";
+
+        return `<div>${c.id} - ${c.title} | Instructor: ${c.instructorId} (${instructorName}) | ${c.date} ${c.time}</div>`;
+      }).join("");
     }
 
     refreshAll();
