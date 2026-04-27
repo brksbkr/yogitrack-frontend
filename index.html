@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YogiTrack Demo</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 20px;
+    }
+
+    h1, h2, summary {
+      color: #f97316;
+    }
+
+    input {
+      margin: 4px;
+      padding: 7px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #222;
+      color: #eee;
+    }
+
+    button {
+      margin: 4px;
+      padding: 7px 12px;
+      border: none;
+      border-radius: 4px;
+      background: #f97316;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #ea580c;
+    }
+
+    .section {
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #333;
+    }
+
+    details {
+      margin-top: 10px;
+      background: #1b1b1b;
+      border-radius: 4px;
+      padding: 8px;
+    }
+
+    .list div {
+      padding: 4px 0;
+    }
+
+    #result {
+      background: #222;
+      padding: 10px;
+      border-radius: 4px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>YogiTrack Demo</h1>
+
+  <div class="section">
+    <h2>Add Instructor</h2>
+    <input id="instructorFirstName" placeholder="First name" />
+    <input id="instructorLastName" placeholder="Last name" />
+    <button onclick="addInstructor()">Add Instructor</button>
+  </div>
+
+  <div class="section">
+    <h2>Add Customer</h2>
+    <input id="customerFirstName" placeholder="First name" />
+    <input id="customerLastName" placeholder="Last name" />
+    <button onclick="addCustomer()">Add Customer</button>
+  </div>
+
+  <div class="section">
+    <h2>Create Package</h2>
+    <input id="packageName" placeholder="Package name" />
+    <input id="packageClassCount" type="number" placeholder="Class count" />
+    <input id="packagePrice" type="number" placeholder="Price" />
+    <button onclick="addPackage()">Add Package</button>
+  </div>
+
+  <div class="section">
+    <h2>Record Sale</h2>
+    <input id="saleCustomerId" placeholder="Customer ID (C1)" />
+    <input id="salePackageId" type="number" placeholder="Package ID (1)" />
+    <button onclick="addSale()">Record Sale</button>
+  </div>
+
+  <div class="section">
+    <h2>Create Class</h2>
+    <input id="classTitle" placeholder="Class title" />
+    <input id="classInstructorId" placeholder="Instructor ID (I1)" />
+    <input id="classDate" placeholder="Date (YYYY-MM-DD)" />
+    <input id="classTime" placeholder="Time (09:00 AM)" />
+    <button onclick="addClass()">Add Class</button>
+  </div>
+
+  <div class="section">
+    <h2>Record Attendance</h2>
+    <input id="attendanceCustomerId" placeholder="Customer ID (C1)" />
+    <input id="attendanceClassId" type="number" placeholder="Class ID (1)" />
+    <button onclick="addAttendance()">Record Attendance</button>
+  </div>
+
+  <div class="section">
+    <h2>Current Data</h2>
+    <button onclick="refreshAll()">Refresh All Data</button>
+
+    <details open>
+      <summary>Customers</summary>
+      <div id="customersList" class="list"></div>
+    </details>
+
+    <details>
+      <summary>Instructors</summary>
+      <div id="instructorsList" class="list"></div>
+    </details>
+
+    <details>
+      <summary>Packages</summary>
+      <div id="packagesList" class="list"></div>
+    </details>
+
+    <details>
+      <summary>Classes</summary>
+      <div id="classesList" class="list"></div>
+    </details>
+  </div>
+
+  <div class="section">
+    <h2>Result</h2>
+    <div id="result">No action yet.</div>
+  </div>
+
+  <script>
+    const API_URL = "https://gentle-oasis-46268-b660c440508a.herokuapp.com";
+
+    function showResult(message) {
+      document.getElementById("result").textContent = message;
+    }
+
+    async function addInstructor() {
+      const firstName = instructorFirstName.value;
+      const lastName = instructorLastName.value;
+
+      const res = await fetch(`${API_URL}/instructors`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ firstName, lastName })
+      });
+
+      const data = await res.json();
+      if (data.message) return showResult(data.message);
+
+      showResult(`Instructor added: ${data.id} - ${data.firstName} ${data.lastName}`);
+      refreshAll();
+    }
+
+    async function addCustomer() {
+      const firstName = customerFirstName.value;
+      const lastName = customerLastName.value;
+
+      const res = await fetch(`${API_URL}/customers`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ firstName, lastName })
+      });
+
+      const data = await res.json();
+      if (data.message) return showResult(data.message);
+
+      showResult(`Customer added: ${data.id} - ${data.firstName} ${data.lastName}`);
+      refreshAll();
+    }
+
+    async function addPackage() {
+      const name = packageName.value;
+      const classCount = parseInt(packageClassCount.value);
+      const price = parseInt(packagePrice.value);
+
+      const res = await fetch(`${API_URL}/packages`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ name, classCount, price })
+      });
+
+      const data = await res.json();
+      if (data.message) return showResult(data.message);
+
+      showResult(`Package created: ID ${data.id} - ${data.name}`);
+      refreshAll();
+    }
+
+    async function addSale() {
+      const customerId = saleCustomerId.value;
+      const packageId = parseInt(salePackageId.value);
+
+      const res = await fetch(`${API_URL}/sales`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ customerId, packageId })
+      });
+
+      const data = await res.json();
+      if (data.message) return showResult(data.message);
+
+      showResult(`Sale recorded: ${customerId} purchased package ${packageId}`);
+      refreshAll();
+    }
+
+    async function addClass() {
+      const title = classTitle.value;
+      const instructorId = classInstructorId.value;
+      const date = classDate.value;
+      const time = classTime.value;
+
+      const res = await fetch(`${API_URL}/classes`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ title, instructorId, date, time })
+      });
+
+      const data = await res.json();
+      if (data.message) return showResult(data.message);
+
+      showResult(`Class created: ${data.id} - ${data.title}`);
+      refreshAll();
+    }
+
+    async function addAttendance() {
+      const customerId = attendanceCustomerId.value;
+      const classId = parseInt(attendanceClassId.value);
+
+      const res = await fetch(`${API_URL}/attendance`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ customerId, classId })
+      });
+
+      const data = await res.json();
+      if (data.message) return showResult(data.message);
+
+      showResult(`Attendance recorded: ${customerId} attended class ${classId}`);
+      refreshAll();
+    }
+
+    async function refreshAll() {
+      const customers = await fetch(`${API_URL}/customers`).then(r => r.json());
+      const instructors = await fetch(`${API_URL}/instructors`).then(r => r.json());
+      const packages = await fetch(`${API_URL}/packages`).then(r => r.json());
+      const classes = await fetch(`${API_URL}/classes`).then(r => r.json());
+
+      customersList.innerHTML = customers.map(c =>
+        `<div>${c.id} - ${c.firstName} ${c.lastName} | Balance: ${c.classBalance}</div>`
+      ).join("");
+
+      instructorsList.innerHTML = instructors.map(i =>
+        `<div>${i.id} - ${i.firstName} ${i.lastName}</div>`
+      ).join("");
+
+      packagesList.innerHTML = packages.map(p =>
+        `<div>${p.id} - ${p.name} (${p.classCount} classes)</div>`
+      ).join("");
+
+      classesList.innerHTML = classes.map(c =>
+        `<div>${c.id} - ${c.title} | ${c.date} ${c.time}</div>`
+      ).join("");
+    }
+
+    refreshAll();
+  </script>
+</body>
+</html>
